@@ -1,0 +1,31 @@
+# List of countries provided by Vivian (Consider moving this to a lookup table in XSOAR)
+COUNTRIES_LIST = {"UK", "Ireland", "Channel Islands", "France", "Germany", 
+                  "Spain", "Italy", "Netherlands", "Belgium", "Luxembourg", "Switzerland"}
+
+# Default values
+country = None
+email = "test@rbc.com"  # Default email if country does not match
+
+try:
+    # Retrieve GDS context data
+    gds = demisto.context().get('GDS', {})
+
+    # Extract country if available
+    users = gds.get('Users', [])
+    if isinstance(users, list) and users:
+        country = users[0].get('c', '').strip()
+
+    # Check if country is in the list
+    if country in COUNTRIES_LIST:
+        email = "compliancebreachmanagement@rbc.com"
+
+    # Store values in XSOAR context for playbook use
+    demisto.setContext("EscalationCountry", country)
+    demisto.setContext("EscalationEmail", email)
+
+    # Return result
+    demisto.results({"EscalationCountry": country, "EscalationEmail": email})
+
+except Exception as e:
+    demisto.error(f"Error retrieving country data: {str(e)}")
+    demisto.results({"error": str(e)})
